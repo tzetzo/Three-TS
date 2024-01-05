@@ -6,7 +6,7 @@ module.exports = {
     module: {
         rules: [
             {
-                test: /\.tsx?$/,
+                test: /\.m?t?j?sx?$/,
                 use: 'ts-loader',
                 exclude: /node_modules/,
             },
