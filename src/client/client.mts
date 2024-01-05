@@ -1,7 +1,6 @@
 import * as THREE from 'three'
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js' // OR
-// import { OrbitControls } from 'three/addons/controls/OrbitControls.js'
-import Stats from 'three/examples/jsm/libs/stats.module.js'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
