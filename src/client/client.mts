@@ -4,8 +4,7 @@ import Stats from 'three/examples/jsm/libs/stats.module'
 import { GUI } from 'dat.gui'
 
 const scene = new THREE.Scene()
-// necessary only during development; comment out once done
-scene.add(new THREE.AxesHelper(6))
+scene.add(new THREE.AxesHelper(5))
 
 const camera = new THREE.PerspectiveCamera(
     75,
@@ -13,82 +12,140 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.z = 2
+camera.position.x = 4
+camera.position.y = 4
+camera.position.z = 4
 
-// fastest renderer is WebGLRenderer
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
-// adds the <canvas /> html element in the body; we can have multiple canvases with different renderers, cameras, scenes etc.
 document.body.appendChild(renderer.domElement)
 
-const controls = new OrbitControls( camera, renderer.domElement )
-// controls.addEventListener('change', render) // in this case we can comment out the animate function if it doesnt contain dynamic code updates
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.target.set(8, 0, 0)
+controls.update()
 
-const geometry = new THREE.BoxGeometry()
-const material = new THREE.MeshBasicMaterial({
-    color: 0x00bb00,
-    wireframe: true,
-})
+const light1 = new THREE.PointLight(0xffffff, 400)
+light1.position.set(10, 10, 10)
+scene.add(light1)
 
-const cube = new THREE.Mesh(geometry, material)
-scene.add(cube)
+const light2 = new THREE.PointLight(0xffffff, 400)
+light2.position.set(-10, 10, 10)
+scene.add(light2)
+
+const object1 = new THREE.Mesh(
+    new THREE.SphereGeometry(),
+    new THREE.MeshPhongMaterial({ color: 0xff0000 })
+)
+object1.position.set(4, 0, 0)
+scene.add(object1)
+object1.add(new THREE.AxesHelper(5))
+const object1WorldPosition = new THREE.Vector3()
+const object1WorldQuaternion = new THREE.Quaternion() // Rotation
+const object1WorldScale = new THREE.Vector3()
+
+const object2 = new THREE.Mesh(
+    new THREE.SphereGeometry(),
+    new THREE.MeshPhongMaterial({ color: 0x00ff00 })
+)
+object2.position.set(4, 0, 0)
+object1.add(object2)
+object2.add(new THREE.AxesHelper(5))
+const object2WorldPosition = new THREE.Vector3()
+
+const object3 = new THREE.Mesh(
+    new THREE.SphereGeometry(),
+    new THREE.MeshPhongMaterial({ color: 0x0000ff })
+)
+object3.position.set(4, 0, 0)
+object2.add(object3)
+object3.add(new THREE.AxesHelper(5))
+const object3WorldPosition = new THREE.Vector3()
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
     camera.aspect = window.innerWidth / window.innerHeight
     camera.updateProjectionMatrix()
     renderer.setSize(window.innerWidth, window.innerHeight)
-    // calling render here prevents a jump in the browsers when resizing
     render()
 }
 
-// necessary only during development; comment out once done
-const stats = new Stats()
-// stats.showPanel(1) // 0: fps, 1: ms, 2: mb, 3+: custom
-document.body.appendChild(stats.dom)
-
-// necessary only during development; comment out once done
-// setup the GUI start
 const gui = new GUI()
 
-const cubeFolder = gui.addFolder('Cube')
+const object1Folder = gui.addFolder('Object1')
+object1Folder.add(object1.position, 'x', 0, 10, 0.01).name('X Position')
+object1Folder
+    .add(object1.rotation, 'x', 0, Math.PI * 2, 0.01)
+    .name('X Rotation')
+object1Folder.add(object1.scale, 'x', 0, 2, 0.01).name('X Scale')
+object1Folder.open()
 
-cubeFolder.add(cube, 'visible')
+const object2Folder = gui.addFolder('Object2')
+object2Folder.add(object2.position, 'x', 0, 10, 0.01).name('X Position')
+object2Folder
+    .add(object2.rotation, 'x', 0, Math.PI * 2, 0.01)
+    .name('X Rotation')
+object2Folder.add(object2.scale, 'x', 0, 2, 0.01).name('X Scale')
+object2Folder.open()
 
-const cubeRotationFolder = cubeFolder.addFolder('Rotation') // sub-folder of Cube
-cubeRotationFolder.add(cube.rotation, 'x', 0 , Math.PI * 2) // equivalent to 360 degrees
-cubeRotationFolder.add(cube.rotation, 'y', 0 , Math.PI * 2)
-cubeRotationFolder.add(cube.rotation, 'z', 0 , Math.PI * 2)
-cubeFolder.open() // open by default
-cubeRotationFolder.open()
+const object3Folder = gui.addFolder('Object3')
+object3Folder.add(object3.position, 'x', 0, 10, 0.01).name('X Position')
+object3Folder
+    .add(object3.rotation, 'x', 0, Math.PI * 2, 0.01)
+    .name('X Rotation')
+object3Folder.add(object3.scale, 'x', 0, 2, 0.01).name('X Scale')
+object3Folder.open()
 
-const cubePositionFolder = cubeFolder.addFolder('Position')
-cubePositionFolder.add(cube.position, 'x', -10, 10, 2) // last one is the step
-cubePositionFolder.add(cube.position, 'y', -10, 10, 2)
-cubePositionFolder.add(cube.position, 'z', -10, 10, 2)
+const stats = new Stats()
+document.body.appendChild(stats.dom)
 
-const cubeScaleFolder = cubeFolder.addFolder('Scale')
-cubeScaleFolder.add(cube.scale, 'x', -5, 5)
-cubeScaleFolder.add(cube.scale, 'y', -5, 5)
-cubeScaleFolder.add(cube.scale, 'z', -5, 5)
+const debug = document.getElementById('debug1') as HTMLElement
 
-const cameraFolder = gui.addFolder('Camera')
-cameraFolder.add(camera.position, 'x', -20, 20)
-cameraFolder.add(camera.position, 'y', -20, 20)
-cameraFolder.add(camera.position, 'z', 0, 20)
-// setup the GUI end
-
-// animate function needed when we want to animate objects all the time
 function animate() {
-    requestAnimationFrame(animate) //calls itself 60 times/sec
-
-    // instead of stats.update() below we can use
-    // stats.begin()
-    // cube.rotation.x += 0.01
-    // cube.rotation.y += 0.01
-    // stats.end()
-
+    requestAnimationFrame(animate)
+    
     render()
+    object1.getWorldPosition(object1WorldPosition)
+    object1.getWorldQuaternion(object1WorldQuaternion)
+    object1.getWorldScale(object1WorldScale)
+    object2.getWorldPosition(object2WorldPosition)
+    object3.getWorldPosition(object3WorldPosition)
+
+    debug.innerText =
+        'Red\n' +
+        'Local Pos X : ' +
+        object1.position.x.toFixed(2) +
+        '\n' +
+        'World Pos X : ' +
+        object1WorldPosition.x.toFixed(2) +
+        '\n' +
+        'Local Quat X : ' +
+        object1.quaternion.x.toFixed(2) +
+        '\n' +
+        'World Quat X : ' +
+        object1WorldQuaternion.x.toFixed(2) +
+        '\n' +
+        'Local Scale X : ' +
+        object1.scale.x.toFixed(2) +
+        '\n' +
+        'World Scale X : ' +
+        object1WorldScale.x.toFixed(2) +
+        '\n' +
+
+        '\nGreen\n' +
+        'Local Pos X : ' +
+        object2.position.x.toFixed(2) +
+        '\n' +
+        'World Pos X : ' +
+        object2WorldPosition.x.toFixed(2) +
+        '\n' +
+
+        '\nBlue\n' +
+        'Local Pos X : ' +
+        object3.position.x.toFixed(2) +
+        '\n' +
+        'World Pos X : ' +
+        object3WorldPosition.x.toFixed(2) +
+        '\n'
     stats.update()
 }
 
@@ -97,4 +154,3 @@ function render() {
 }
 
 animate()
-// render()
