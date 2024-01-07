@@ -12,54 +12,42 @@ const camera = new THREE.PerspectiveCamera(
     0.1,
     1000
 )
-camera.position.x = 4
-camera.position.y = 4
-camera.position.z = 4
+camera.position.z = 3
 
 const renderer = new THREE.WebGLRenderer()
 renderer.setSize(window.innerWidth, window.innerHeight)
 document.body.appendChild(renderer.domElement)
 
-const controls = new OrbitControls(camera, renderer.domElement)
-controls.target.set(8, 0, 0)
-controls.update()
+new OrbitControls(camera, renderer.domElement)
 
-const light1 = new THREE.PointLight(0xffffff, 400)
-light1.position.set(10, 10, 10)
-scene.add(light1)
+const boxGeometry = new THREE.BoxGeometry()
+const sphereGeometry = new THREE.SphereGeometry()
+const icosahedronGeometry = new THREE.IcosahedronGeometry(1, 0)
+const planeGeometry = new THREE.PlaneGeometry()
+const torusKnotGeometry = new THREE.TorusKnotGeometry()
 
-const light2 = new THREE.PointLight(0xffffff, 400)
-light2.position.set(-10, 10, 10)
-scene.add(light2)
+// const material = new THREE.MeshBasicMaterial()
+const material= new THREE.MeshNormalMaterial()
 
-const object1 = new THREE.Mesh(
-    new THREE.SphereGeometry(),
-    new THREE.MeshPhongMaterial({ color: 0xff0000 })
-)
-object1.position.set(4, 0, 0)
-scene.add(object1)
-object1.add(new THREE.AxesHelper(5))
-const object1WorldPosition = new THREE.Vector3()
-const object1WorldQuaternion = new THREE.Quaternion() // Rotation
-const object1WorldScale = new THREE.Vector3()
+const cube = new THREE.Mesh(boxGeometry, material)
+cube.position.x = 5
+scene.add(cube)
 
-const object2 = new THREE.Mesh(
-    new THREE.SphereGeometry(),
-    new THREE.MeshPhongMaterial({ color: 0x00ff00 })
-)
-object2.position.set(4, 0, 0)
-object1.add(object2)
-object2.add(new THREE.AxesHelper(5))
-const object2WorldPosition = new THREE.Vector3()
+const sphere = new THREE.Mesh(sphereGeometry, material)
+sphere.position.x = 3
+scene.add(sphere)
 
-const object3 = new THREE.Mesh(
-    new THREE.SphereGeometry(),
-    new THREE.MeshPhongMaterial({ color: 0x0000ff })
-)
-object3.position.set(4, 0, 0)
-object2.add(object3)
-object3.add(new THREE.AxesHelper(5))
-const object3WorldPosition = new THREE.Vector3()
+const icosahedron = new THREE.Mesh(icosahedronGeometry, material)
+icosahedron.position.x = 0
+scene.add(icosahedron)
+
+const plane = new THREE.Mesh(planeGeometry, material)
+plane.position.x = -2
+scene.add(plane)
+
+const torusKnot = new THREE.Mesh(torusKnotGeometry, material)
+torusKnot.position.x = -5
+scene.add(torusKnot)
 
 window.addEventListener('resize', onWindowResize, false)
 function onWindowResize() {
@@ -69,83 +57,38 @@ function onWindowResize() {
     render()
 }
 
-const gui = new GUI()
-
-const object1Folder = gui.addFolder('Object1')
-object1Folder.add(object1.position, 'x', 0, 10, 0.01).name('X Position')
-object1Folder
-    .add(object1.rotation, 'x', 0, Math.PI * 2, 0.01)
-    .name('X Rotation')
-object1Folder.add(object1.scale, 'x', 0, 2, 0.01).name('X Scale')
-object1Folder.open()
-
-const object2Folder = gui.addFolder('Object2')
-object2Folder.add(object2.position, 'x', 0, 10, 0.01).name('X Position')
-object2Folder
-    .add(object2.rotation, 'x', 0, Math.PI * 2, 0.01)
-    .name('X Rotation')
-object2Folder.add(object2.scale, 'x', 0, 2, 0.01).name('X Scale')
-object2Folder.open()
-
-const object3Folder = gui.addFolder('Object3')
-object3Folder.add(object3.position, 'x', 0, 10, 0.01).name('X Position')
-object3Folder
-    .add(object3.rotation, 'x', 0, Math.PI * 2, 0.01)
-    .name('X Rotation')
-object3Folder.add(object3.scale, 'x', 0, 2, 0.01).name('X Scale')
-object3Folder.open()
-
 const stats = new Stats()
 document.body.appendChild(stats.dom)
 
-const debug = document.getElementById('debug1') as HTMLElement
+const options = {
+    side: {
+        "FrontSide": THREE.FrontSide,
+        "BackSide": THREE.BackSide,
+        "DoubleSide": THREE.DoubleSide,
+    }
+}
+
+const gui = new GUI()
+const materialFolder = gui.addFolder('THREE.Material')
+materialFolder.add(material, 'transparent').onChange(() => material.needsUpdate = true)
+materialFolder.add(material, 'opacity', 0, 1, 0.01)
+materialFolder.add(material, 'depthTest')
+materialFolder.add(material, 'depthWrite')
+materialFolder.add(material, 'alphaTest', 0, 1, 0.01).onChange(updateMaterial)
+materialFolder.add(material, 'visible')
+materialFolder.add(material, 'side', options.side).onChange(updateMaterial)
+materialFolder.open()
+
+function updateMaterial() {
+    material.side = Number(material.side) as THREE.Side // necessary conversion, otherwise material.side from GUI dropdown comes as string
+    material.needsUpdate = true
+}
 
 function animate() {
     requestAnimationFrame(animate)
-    
+
     render()
-    object1.getWorldPosition(object1WorldPosition)
-    object1.getWorldQuaternion(object1WorldQuaternion)
-    object1.getWorldScale(object1WorldScale)
-    object2.getWorldPosition(object2WorldPosition)
-    object3.getWorldPosition(object3WorldPosition)
 
-    debug.innerText =
-        'Red\n' +
-        'Local Pos X : ' +
-        object1.position.x.toFixed(2) +
-        '\n' +
-        'World Pos X : ' +
-        object1WorldPosition.x.toFixed(2) +
-        '\n' +
-        'Local Quat X : ' +
-        object1.quaternion.x.toFixed(2) +
-        '\n' +
-        'World Quat X : ' +
-        object1WorldQuaternion.x.toFixed(2) +
-        '\n' +
-        'Local Scale X : ' +
-        object1.scale.x.toFixed(2) +
-        '\n' +
-        'World Scale X : ' +
-        object1WorldScale.x.toFixed(2) +
-        '\n' +
-
-        '\nGreen\n' +
-        'Local Pos X : ' +
-        object2.position.x.toFixed(2) +
-        '\n' +
-        'World Pos X : ' +
-        object2WorldPosition.x.toFixed(2) +
-        '\n' +
-
-        '\nBlue\n' +
-        'Local Pos X : ' +
-        object3.position.x.toFixed(2) +
-        '\n' +
-        'World Pos X : ' +
-        object3WorldPosition.x.toFixed(2) +
-        '\n'
     stats.update()
 }
 
