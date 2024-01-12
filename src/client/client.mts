@@ -6,11 +6,10 @@ import { GUI } from 'dat.gui'
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-const light = new THREE.HemisphereLight(0xffffff, 0xffffff, Math.PI)
+const light = new THREE.PointLight(0xffffff, 2)
 scene.add(light)
 
-// the helper shows the outlines of the light; good for dev purposes
-const helper = new THREE.HemisphereLightHelper(light, 5)
+const helper = new THREE.PointLightHelper(light)
 scene.add(helper)
 
 const camera = new THREE.PerspectiveCamera(
@@ -27,18 +26,18 @@ document.body.appendChild(renderer.domElement)
 
 new OrbitControls(camera, renderer.domElement)
 
-// const planeGeometry = new THREE.PlaneGeometry(100, 10)
-// const plane = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial())
-// plane.rotateX(-Math.PI / 2)
-// //plane.position.y = -1.75
-// scene.add(plane)
+const planeGeometry = new THREE.PlaneGeometry(20, 10)//, 360, 180)
+const plane = new THREE.Mesh(planeGeometry, new THREE.MeshPhongMaterial())
+plane.rotateX(-Math.PI / 2)
+//plane.position.y = -1.75
+scene.add(plane)
 
 const torusGeometry = [
     new THREE.TorusGeometry(),
     new THREE.TorusGeometry(),
     new THREE.TorusGeometry(),
     new THREE.TorusGeometry(),
-    new THREE.TorusGeometry(),
+    new THREE.TorusGeometry()
 ]
 
 const material = [
@@ -46,7 +45,7 @@ const material = [
     new THREE.MeshLambertMaterial(),
     new THREE.MeshPhongMaterial(),
     new THREE.MeshPhysicalMaterial({}),
-    new THREE.MeshToonMaterial(),
+    new THREE.MeshToonMaterial()
 ]
 
 const torus = [
@@ -54,7 +53,7 @@ const torus = [
     new THREE.Mesh(torusGeometry[1], material[1]),
     new THREE.Mesh(torusGeometry[2], material[2]),
     new THREE.Mesh(torusGeometry[3], material[3]),
-    new THREE.Mesh(torusGeometry[4], material[4]),
+    new THREE.Mesh(torusGeometry[4], material[4])
 ]
 
 const texture = new THREE.TextureLoader().load('img/grid.png')
@@ -89,8 +88,7 @@ document.body.appendChild(stats.dom)
 
 const data = {
     color: light.color.getHex(),
-    groundColor: light.groundColor.getHex(),
-    mapsEnabled: true,
+    mapsEnabled: true
 }
 
 const gui = new GUI()
@@ -98,20 +96,15 @@ const lightFolder = gui.addFolder('THREE.Light')
 lightFolder.addColor(data, 'color').onChange(() => {
     light.color.setHex(Number(data.color.toString().replace('#', '0x')))
 })
-lightFolder.add(light, 'intensity', 0, Math.PI * 2, 0.01)
-lightFolder.open()
+lightFolder.add(light, 'intensity', 0, 10, 0.01)
 
-const hemisphereLightFolder = gui.addFolder('THREE.HemisphereLight')
-hemisphereLightFolder.addColor(data, 'groundColor').onChange(() => {
-    light.groundColor.setHex(
-        Number(data.groundColor.toString().replace('#', '0x'))
-    )
-})
-
-hemisphereLightFolder.add(light.position, 'x', -100, 100, 0.01)
-hemisphereLightFolder.add(light.position, 'y', -100, 100, 0.01)
-hemisphereLightFolder.add(light.position, 'z', -100, 100, 0.01)
-hemisphereLightFolder.open()
+const pointLightFolder = gui.addFolder('THREE.PointLight')
+pointLightFolder.add(light, 'distance', 0, 100, 0.01)
+pointLightFolder.add(light, 'decay', 0, 4, 0.1)
+pointLightFolder.add(light.position, 'x', -50, 50, 0.01)
+pointLightFolder.add(light.position, 'y', -50, 50, 0.01)
+pointLightFolder.add(light.position, 'z', -50, 50, 0.01)
+pointLightFolder.open()
 
 const meshesFolder = gui.addFolder('Meshes')
 meshesFolder.add(data, 'mapsEnabled').onChange(() => {
