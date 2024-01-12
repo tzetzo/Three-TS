@@ -6,7 +6,7 @@ import { GUI } from 'dat.gui'
 const scene = new THREE.Scene()
 scene.add(new THREE.AxesHelper(5))
 
-const light = new THREE.SpotLight(0xffffff, 2)
+const light = new THREE.SpotLight(0xffffff, Math.PI * 10)
 scene.add(light)
 
 const helper = new THREE.SpotLightHelper(light) // the outline of the spotlight, helps for development
