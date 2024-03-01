@@ -1,285 +1,117 @@
-// https://sbcode.net/threejs/tween-animation-mixer/
-import * as THREE from "three";
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
-import Stats from "three/examples/jsm/libs/stats.module";
-import { GUI } from "dat.gui";
-import TWEEN from "@tweenjs/tween.js";
+import * as THREE from 'three'
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls'
+import Stats from 'three/examples/jsm/libs/stats.module'
+import TWEEN from '@tweenjs/tween.js'
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader'
 
-const scene = new THREE.Scene();
-scene.add(new THREE.AxesHelper(5));
-
-const light1 = new THREE.SpotLight(0xffffff, 100);
-light1.position.set(2.5, 5, 2.5);
-light1.angle = Math.PI / 8;
-light1.penumbra = 0.5;
-light1.castShadow = true;
-light1.shadow.mapSize.width = 1024;
-light1.shadow.mapSize.height = 1024;
-light1.shadow.camera.near = 0.5;
-light1.shadow.camera.far = 20;
-scene.add(light1);
-
-const light2 = new THREE.SpotLight(0xffffff, 100);
-light2.position.set(-2.5, 5, 2.5);
-light2.angle = Math.PI / 8;
-light2.penumbra = 0.5;
-light2.castShadow = true;
-light2.shadow.mapSize.width = 1024;
-light2.shadow.mapSize.height = 1024;
-light2.shadow.camera.near = 0.5;
-light2.shadow.camera.far = 20;
-scene.add(light2);
+const scene = new THREE.Scene()
+scene.add(new THREE.AxesHelper(5))
 
 const camera = new THREE.PerspectiveCamera(
-  75,
-  window.innerWidth / window.innerHeight,
-  0.1,
-  1000
-);
-camera.position.set(0.8, 1.4, 1.0);
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+)
+camera.position.set(-0.6, 0.45, 2)
 
-const renderer = new THREE.WebGLRenderer();
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.shadowMap.enabled = true;
-document.body.appendChild(renderer.domElement);
+const renderer = new THREE.WebGLRenderer()
+//renderer.physicallyCorrectLights = true //deprecated
+// renderer.useLegacyLights = false //use this instead of setting physicallyCorrectLights=true property
+renderer.shadowMap.enabled = true
+renderer.setSize(window.innerWidth, window.innerHeight)
+document.body.appendChild(renderer.domElement)
 
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 1, 0);
+const controls = new OrbitControls(camera, renderer.domElement)
+controls.enableDamping = true
 
-const sceneMeshes: THREE.Mesh[] = [];
+const raycaster = new THREE.Raycaster()
+const sceneMeshes: THREE.Object3D[] = []
 
-const planeGeometry = new THREE.PlaneGeometry(25, 25);
-const texture = new THREE.TextureLoader().load("img/grid.png");
-const plane = new THREE.Mesh(
-  planeGeometry,
-  new THREE.MeshPhongMaterial({ map: texture })
-);
-plane.rotateX(-Math.PI / 2);
-plane.receiveShadow = true;
-scene.add(plane);
-sceneMeshes.push(plane);
+const loader = new GLTFLoader()
+loader.load(
+    'models/monkey.glb',
+    function (gltf) {
+        gltf.scene.traverse(function (child) {
+            if ((child as THREE.Mesh).isMesh) {
+                const m = child as THREE.Mesh
+                if (m.name === 'Suzanne') {
+                    m.castShadow = true
+                } else {
+                    // floor
+                    m.receiveShadow = true
+                }
+                sceneMeshes.push(m)
+            }
+            if ((child as THREE.Light).isLight) {
+                const l = child as THREE.SpotLight
+                l.castShadow = true
+                l.shadow.bias = -0.001
+                l.intensity = Math.PI * 1000 // need to multiply by `Math.PI` because renderer.useLegacyLights is deprecated
+            }
+        })
+        scene.add(gltf.scene)
+    },
+    (xhr) => {
+        console.log((xhr.loaded / xhr.total) * 100 + '% loaded')
+    },
+    (error) => {
+        console.log(error)
+    }
+)
 
-let mixer: THREE.AnimationMixer;
-let modelReady = false;
-let modelMesh: THREE.Object3D;
-const animationActions: THREE.AnimationAction[] = [];
-let activeAction: THREE.AnimationAction;
-let lastAction: THREE.AnimationAction;
-const gltfLoader = new GLTFLoader();
-
-gltfLoader.load(
-  "models/vanguard.glb",
-  (gltf) => {
-    gltf.scene.traverse(function (child) {
-      if ((child as THREE.Mesh).isMesh) {
-        let m = child as THREE.Mesh;
-        m.castShadow = true;
-        m.frustumCulled = false; // this can solve the problem when the 3D model dissapears when the camera is too close to it
-      }
-    });
-
-    mixer = new THREE.AnimationMixer(gltf.scene);
-
-    const animationAction = mixer.clipAction((gltf as any).animations[0]);
-    animationActions.push(animationAction);
-    animationsFolder.add(animations, "default");
-    activeAction = animationActions[0];
-
-    scene.add(gltf.scene);
-    modelMesh = gltf.scene;
-
-    //add an animation from another file
-    gltfLoader.load(
-      "models/vanguard@samba.glb",
-      (gltf) => {
-        console.log("loaded samba");
-        const animationAction = mixer.clipAction((gltf as any).animations[0]);
-        animationActions.push(animationAction);
-        animationsFolder.add(animations, "samba");
-
-        //add an animation from another file
-        gltfLoader.load(
-          "models/vanguard@bellydance.glb",
-          (gltf) => {
-            console.log("loaded bellydance");
-            const animationAction = mixer.clipAction(
-              (gltf as any).animations[0]
-            );
-            animationActions.push(animationAction);
-            animationsFolder.add(animations, "bellydance");
-
-            //add an animation from another file
-            gltfLoader.load(
-              "models/vanguard@goofyrunning.glb",
-              (gltf) => {
-                console.log("loaded goofyrunning");
-                (gltf as any).animations[0].tracks.shift(); //delete the specific track that moves the object forward while running
-                const animationAction = mixer.clipAction(
-                  (gltf as any).animations[0]
-                );
-                animationActions.push(animationAction);
-                animationsFolder.add(animations, "goofyrunning");
-
-                modelReady = true;
-              },
-              (xhr) => {
-                console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-              },
-              (error) => {
-                console.log(error);
-              }
-            );
-          },
-          (xhr) => {
-            console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-          },
-          (error) => {
-            console.log(error);
-          }
-        );
-      },
-      (xhr) => {
-        console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-      },
-      (error) => {
-        console.log(error);
-      }
-    );
-  },
-  (xhr) => {
-    console.log((xhr.loaded / xhr.total) * 100 + "% loaded");
-  },
-  (error) => {
-    console.log(error);
-  }
-);
-
-window.addEventListener("resize", onWindowResize, false);
-function onWindowResize() {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-  render();
-}
-
-const raycaster = new THREE.Raycaster();
-const targetQuaternion = new THREE.Quaternion();
-
-renderer.domElement.addEventListener("dblclick", onDoubleClick, false);
+const mouse = new THREE.Vector2()
 function onDoubleClick(event: MouseEvent) {
-  const mouse = {
-    x: (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
-    y: -(event.clientY / renderer.domElement.clientHeight) * 2 + 1,
-  } as THREE.Vector2;
-  raycaster.setFromCamera(mouse, camera);
+    mouse.set(
+        (event.clientX / renderer.domElement.clientWidth) * 2 - 1,
+        -(event.clientY / renderer.domElement.clientHeight) * 2 + 1
+    )
+    raycaster.setFromCamera(mouse, camera)
 
-  const intersects = raycaster.intersectObjects(sceneMeshes, false);
+    const intersects = raycaster.intersectObjects(sceneMeshes, false)
 
-  if (intersects.length > 0) {
-    const p = intersects[0].point;
-
-    const distance = modelMesh.position.distanceTo(p);
-
-    // modelMesh.lookAt(p);
-
-    // this makes the turning of the 3D model gradual; works together with the snippet in the animate function
-    const rotationMatrix = new THREE.Matrix4();
-    rotationMatrix.lookAt(p, modelMesh.position, modelMesh.up);
-    targetQuaternion.setFromRotationMatrix(rotationMatrix);
-
-    setAction(animationActions[3]);
-
-    TWEEN.removeAll(); // prevent sliding of the 3D model which happens sometimes
-    new TWEEN.Tween(modelMesh.position)
-      .to(
-        {
-          x: p.x,
-          y: p.y,
-          z: p.z,
-        },
-        (1000 / 2) * distance
-      ) //walks 2 meters a second * the distance
-      .onUpdate(() => {
-        controls.target.set(
-          modelMesh.position.x,
-          modelMesh.position.y + 1,
-          modelMesh.position.z
-        );
-        light1.target = modelMesh;
-        light2.target = modelMesh;
-      })
-      .start()
-      .onComplete(() => {
-        setAction(animationActions[2]);
-        activeAction.clampWhenFinished = true;
-        activeAction.loop = THREE.LoopOnce; // makes the 3D model dance just once
-      });
-  }
+    if (intersects.length > 0) {
+        const p = intersects[0].point
+        new TWEEN.Tween(controls.target)
+            .to(
+                {
+                    x: p.x,
+                    y: p.y,
+                    z: p.z,
+                },
+                500
+            )
+            .easing(TWEEN.Easing.Cubic.Out)
+            .start()
+    }
 }
+renderer.domElement.addEventListener('dblclick', onDoubleClick, false)
 
-const stats = new Stats();
-document.body.appendChild(stats.dom);
+function onWindowResize() {
+    camera.aspect = window.innerWidth / window.innerHeight
+    camera.updateProjectionMatrix()
+    renderer.setSize(window.innerWidth, window.innerHeight)
+    render()
+}
+window.addEventListener('resize', onWindowResize, false)
 
-const animations = {
-  default: function () {
-    setAction(animationActions[0]);
-  },
-  samba: function () {
-    setAction(animationActions[1]);
-  },
-  bellydance: function () {
-    setAction(animationActions[2]);
-  },
-  goofyrunning: function () {
-    setAction(animationActions[3]);
-  },
-};
-
-const setAction = (toAction: THREE.AnimationAction) => {
-  if (toAction != activeAction) {
-    lastAction = activeAction;
-    activeAction = toAction;
-    //lastAction.stop()
-    lastAction.fadeOut(0.2);
-    activeAction.reset();
-    activeAction.fadeIn(0.2);
-    activeAction.play();
-  }
-};
-
-const gui = new GUI();
-const animationsFolder = gui.addFolder("Animations");
-animationsFolder.open();
-
-const clock = new THREE.Clock();
-let delta = 0;
+const stats = new Stats()
+document.body.appendChild(stats.dom)
 
 function animate() {
-  requestAnimationFrame(animate);
+    requestAnimationFrame(animate)
 
-  controls.update();
+    controls.update()
 
-  if (modelReady) {
-    delta = clock.getDelta();
-    mixer.update(delta);
+    TWEEN.update()
 
-    // this makes the turning of the 3D model gradual
-    if (!modelMesh.quaternion.equals(targetQuaternion)) {
-      modelMesh.quaternion.rotateTowards(targetQuaternion, delta * 10);
-    }
-  }
+    render()
 
-  TWEEN.update();
-
-  render();
-
-  stats.update();
+    stats.update()
 }
 
 function render() {
-  renderer.render(scene, camera);
+    renderer.render(scene, camera)
 }
 
-animate();
+animate()
