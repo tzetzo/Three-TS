@@ -5,7 +5,8 @@
   "main": "bundle.js",
   "scripts": {
     "dev": "webpack serve --config ./src/client/webpack.dev.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "webpack --config ./src/client/webpack.prod.js",
+    "prod": "http-server ./dist/client"
   },
   "keywords": [],
   "author": "",
@@ -23,6 +24,7 @@
   },
   "dependencies": {
     "@tweenjs/tween.js": "^23.1.1",
-    "cannon-es": "^0.20.0"
+    "cannon-es": "^0.20.0",
+    "http-server": "^14.1.1"
   }
 }
