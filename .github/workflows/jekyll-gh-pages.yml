@@ -33,8 +33,8 @@ jobs:
       - name: Build with Jekyll
         uses: actions/jekyll-build-pages@v1
         with:
-          source: npm run build
-          destination: ./_site
+          source: ./src/client/client.mts
+          destination: ./dist/client
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
 
