@@ -16,7 +16,7 @@ jobs:
 
     steps:
     - uses: actions/checkout@v4
-    - run: npm install && npm run build
+    - run: npm install && npm run build && npm run prod
 
     # - name: Use Node.js ${{ matrix.node-version }}
     #   uses: actions/setup-node@v3
