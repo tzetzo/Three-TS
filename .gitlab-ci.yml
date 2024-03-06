@@ -43,7 +43,7 @@ build-job:
 #          - build
 #       expire_in: 30 mins
    dependencies:
-      - install
+      - install-job
 
 deploy-job:      # This job runs in the deploy stage.
   stage: deploy  
