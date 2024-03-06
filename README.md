@@ -1,6 +1,6 @@
 <div><strong>Node.js v20.10.0</strong></div>
 <div><strong>npm v10.2.3</strong></div>
-
+<hr>
 <div>Deploy to github pages:</div>
 <div>1. In ".git/config" : </div>
     <div>[remote "origin"]</div>
@@ -8,7 +8,7 @@
 <div>2. uses ".github/workflows/production.yml" from the repo;</div>
 <div>3. github.com - Settings - Pages - shows the URL (https://tzetzo.github.io/Three-TS/)</div>
 <div>4. github.com - Actions - shows the workflows/pipelines;</div>
-
+<hr>
 <div>Deploy to gitlab pages:</div>
 <div>1. In ".git/config" : </div>
     <div>[remote "origin"]</div>
