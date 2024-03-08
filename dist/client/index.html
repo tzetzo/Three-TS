@@ -3,26 +3,31 @@
     <head>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1" />
-        <title>Three.js TypeScript Tutorials by Sean Bradley</title>
+        <title>
+            Three.js TypeScript Tutorials by Sean Bradley :
+            https://sbcode.net/threejs
+        </title>
         <style>
             body {
                 overflow: hidden;
                 margin: 0px;
             }
 
-            #progressBar {
-                width: 500px;
-                height: 24px;
+            #pingStats {
                 position: absolute;
-                left: 50%;
-                top: 10px;
-                margin-left: -250px;
+                top: 60px;
+                left: 4px;
+                width: 400px;
+                height: 400px;
+                pointer-events: none;
+                color: white;
+                font-family: monospace;
             }
         </style>
     </head>
 
     <body>
-        <progress value="0" max="100" id="progressBar"></progress>
+        <div id="pingStats"></div>
         <script type="module" src="bundle.js"></script>
     </body>
 </html>

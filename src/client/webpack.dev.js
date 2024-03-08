@@ -11,7 +11,13 @@ module.exports = merge(common, {
         },
         hot: true,
         open: true, // auto opens a browser tab
-        port: 3000, // localhost:3000
+        // port: 3000, // localhost:3000
         headers: { 'Content-Encoding': 'none' }, // makes the webpack dev server return the Header `Content-Length` which is used by the `xhr.total` to calculate the loading progress of our 3D models inside the `onProgress` callback
+        proxy: {
+            '/socket.io': {
+                target: 'http://127.0.0.1:5000',
+                ws: true,
+            },
+        },
     },
 })
