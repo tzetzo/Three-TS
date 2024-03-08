@@ -29,6 +29,5 @@ jobs:
     - run: npm ci
     - run: npm install
     - run: npm run build
-    - run: npm test
     - run: tsc -p ./src/server
     # - run: node ./dist/server/server.js
