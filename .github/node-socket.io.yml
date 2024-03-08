@@ -27,5 +27,7 @@ jobs:
         node-version: ${{ matrix.node-version }}
         cache: 'npm'
     - run: npm install
-    - run: npm run build && tsc -p ./src/server && node ./dist/server/server.js
+    - run: npm run build
+    - run: tsc -p ./src/server
+    - run: node ./dist/server/server.js
     # - run: npm test
